@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aim Trainer - Level & Time</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+  <style>
+    body { margin: 0; background: #111; color: white; text-align: center; }
+    canvas { display: block; margin: 20px auto; border: 2px solid #4cafef; border-radius: 10px; }
+    #hud { margin: 10px; font-size: 20px; }
+    #startBtn {
+      padding: 15px 30px; font-size: 20px; border-radius: 10px; cursor: pointer;
+      background: #4cafef; color: white; border: none; margin-top: 20px;
+    }
+    select {
+      margin-top: 10px; font-size: 18px; padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Aim Trainer 🎯</h1>
+  <div id="hud">점수: 0 | 남은 시간: 30.0초 | 레벨: 1</div>
+
+  <label>레벨 선택: </label>
+  <select id="level">
+    <option value="1" selected>레벨 1 (큰 점)</option>
+    <option value="2">레벨 2</option>
+    <option value="3">레벨 3</option>
+    <option value="4">레벨 4</option>
+    <option value="5">레벨 5 (아주 작은 점)</option>
+  </select>
+  <br/>
+  <label>시간 선택: </label>
+  <select id="timeSelect">
+    <option value="10">10초</option>
+    <option value="20">20초</option>
+    <option value="30" selected>30초</option>
+    <option value="60">60초</option>
+  </select>
+  <br/>
+  <button id="startBtn">게임 시작</button>
+
+  <script>
+    let score = 0;
+    let timeLeft = 30.0;
+    let hits = 0, totalClicks = 0;
+    let game, gameScene;
+    let targets = [];
+    let currentLevel = 1;
+    let totalTime = 30;
+
+    const levelSizes = { 1: 30, 2: 25, 3: 20, 4: 15, 5: 10 };
+
+    gameScene = new Phaser.Scene('Game');
+
+    gameScene.create = function() {
+      score = 0;
+      timeLeft = totalTime;
+      hits = 0;
+      totalClicks = 0;
+      targets = [];
+
+      document.getElementById("hud").innerText =
+        `점수: 0 | 남은 시간: ${timeLeft.toFixed(1)}초 | 레벨: ${currentLevel}`;
+
+      // 0.1초마다 시간 업데이트
+      this.timer = this.time.addEvent({
+        delay: 100,
+        loop: true,
+        callback: () => {
+          timeLeft -= 0.1;
+          document.getElementById("hud").innerText =
+            `점수: ${score} | 남은 시간: ${timeLeft.toFixed(1)}초 | 레벨: ${currentLevel}`;
+          if (timeLeft <= 0) {
+            this.endGame();
+          }
+        }
+      });
+
+      this.spawnTargets();
+    };
+
+    // 점 10개 생성
+    gameScene.spawnTargets = function() {
+      targets.forEach(t => t.destroy());
+      targets = [];
+
+      let size = levelSizes[currentLevel];
+      for (let i = 0; i < 10; i++) {
+        let x = Phaser.Math.Between(50, 750);
+        let y = Phaser.Math.Between(50, 550);
+        let circle = this.add.circle(x, y, size, 0xff4444).setInteractive();
+        circle.on('pointerdown', () => {
+          hits++;
+          score++;
+          totalClicks++;
+          circle.destroy();
+          targets = targets.filter(t => t !== circle);
+
+          document.getElementById("hud").innerText =
+            `점수: ${score} | 남은 시간: ${timeLeft.toFixed(1)}초 | 레벨: ${currentLevel}`;
+
+          if (targets.length === 0) {
+            this.spawnTargets();
+          }
+        });
+        targets.push(circle);
+      }
+    };
+
+    // 게임 종료
+    gameScene.endGame = function() {
+      targets.forEach(t => t.destroy());
+      this.scene.pause();
+
+      // 종료 후 레벨/시간 다시 선택 가능
+      document.getElementById("level").disabled = false;
+      document.getElementById("timeSelect").disabled = false;
+
+      let accuracy = totalClicks > 0 ? ((hits / totalClicks) * 100).toFixed(1) : 0;
+      alert(`게임 종료!\n점수: ${score}\n정확도: ${accuracy}%`);
+      location.reload();
+    };
+
+    let config = {
+      type: Phaser.AUTO,
+      width: 800,
+      height: 600,
+      backgroundColor: "#222",
+      scene: [gameScene]
+    };
+
+    document.getElementById("startBtn").onclick = function() {
+      this.style.display = "none";
+      currentLevel = parseInt(document.getElementById("level").value);
+      totalTime = parseInt(document.getElementById("timeSelect").value);
+
+      // 시작하면 레벨/시간 변경 불가
+      document.getElementById("level").disabled = true;
+      document.getElementById("timeSelect").disabled = true;
+
+      game = new Phaser.Game(config);
+    };
+  </script>
+</body>
+</html>
