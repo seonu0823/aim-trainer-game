@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Aim Trainer - Multi Language</title>
+  <title>Aim Trainer - Multi Language (Accuracy Fixed)</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
   <style>
     body { margin: 0; background: #111; color: white; text-align: center; }
@@ -99,6 +99,11 @@
       targets = [];
       updateHUD();
 
+      // 전체 화면 클릭 → totalClicks 증가
+      this.input.on('pointerdown', () => {
+        totalClicks++;
+      });
+
       this.timer = this.time.addEvent({
         delay: 100,
         loop: true,
@@ -126,7 +131,6 @@
         circle.on('pointerdown', () => {
           hits++;
           score++;
-          totalClicks++;
           circle.destroy();
           targets = targets.filter(t => t !== circle);
           updateHUD();
@@ -145,7 +149,7 @@
       document.getElementById("timeSelect").disabled = false;
 
       let accuracy = totalClicks > 0 ? ((hits / totalClicks) * 100).toFixed(1) : 0;
-      alert(`${translations[currentLang].gameOver}\\n${translations[currentLang].score}: ${score}\\n${translations[currentLang].accuracy}: ${accuracy}%`);
+      alert(`${translations[currentLang].gameOver}\n${translations[currentLang].score}: ${score}\n${translations[currentLang].accuracy}: ${accuracy}%`);
       location.reload();
     };
 
