@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Aim Trainer - Level & Time</title>
+  <title>Aim Trainer - Multi Language</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
   <style>
     body { margin: 0; background: #111; color: white; text-align: center; }
@@ -12,35 +12,57 @@
       padding: 15px 30px; font-size: 20px; border-radius: 10px; cursor: pointer;
       background: #4cafef; color: white; border: none; margin-top: 20px;
     }
-    select {
-      margin-top: 10px; font-size: 18px; padding: 10px;
-    }
+    select { margin-top: 10px; font-size: 18px; padding: 10px; }
   </style>
 </head>
 <body>
-  <h1>Aim Trainer 🎯</h1>
-  <div id="hud">점수: 0 | 남은 시간: 30.0초 | 레벨: 1</div>
+  <h1 id="gameTitle">Aim Trainer 🎯</h1>
+  <div id="hud">Score: 0 | Time Left: 30.0 | Level: 1</div>
 
-  <label>레벨 선택: </label>
+  <label id="langLabel">Language: </label>
+  <select id="langSelect">
+    <option value="ko">한국어</option>
+    <option value="en" selected>English</option>
+    <option value="ja">日本語</option>
+    <option value="zh">中文</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="de">Deutsch</option>
+    <option value="ru">Русский</option>
+  </select>
+  <br/>
+
+  <label id="levelLabel">Level: </label>
   <select id="level">
-    <option value="1" selected>레벨 1 (큰 점)</option>
-    <option value="2">레벨 2</option>
-    <option value="3">레벨 3</option>
-    <option value="4">레벨 4</option>
-    <option value="5">레벨 5 (아주 작은 점)</option>
+    <option value="1" selected>1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
   </select>
   <br/>
-  <label>시간 선택: </label>
+  <label id="timeLabel">Time: </label>
   <select id="timeSelect">
-    <option value="10">10초</option>
-    <option value="20">20초</option>
-    <option value="30" selected>30초</option>
-    <option value="60">60초</option>
+    <option value="10">10</option>
+    <option value="20">20</option>
+    <option value="30" selected>30</option>
+    <option value="60">60</option>
   </select>
   <br/>
-  <button id="startBtn">게임 시작</button>
+  <button id="startBtn">Start Game</button>
 
   <script>
+    const translations = {
+      ko: { title: "에임 트레이너 🎯", score: "점수", time: "남은 시간", level: "레벨", gameOver: "게임 종료!", accuracy: "정확도", restart: "다시 시작", lang: "언어", timeSelect: "시간" },
+      en: { title: "Aim Trainer 🎯", score: "Score", time: "Time Left", level: "Level", gameOver: "Game Over!", accuracy: "Accuracy", restart: "Restart", lang: "Language", timeSelect: "Time" },
+      ja: { title: "エイムトレーナー 🎯", score: "スコア", time: "残り時間", level: "レベル", gameOver: "ゲーム終了!", accuracy: "正確度", restart: "再スタート", lang: "言語", timeSelect: "時間" },
+      zh: { title: "瞄准训练 🎯", score: "分数", time: "剩余时间", level: "等级", gameOver: "游戏结束!", accuracy: "准确率", restart: "重新开始", lang: "语言", timeSelect: "时间" },
+      es: { title: "Entrenador de Puntería 🎯", score: "Puntuación", time: "Tiempo Restante", level: "Nivel", gameOver: "¡Juego Terminado!", accuracy: "Precisión", restart: "Reiniciar", lang: "Idioma", timeSelect: "Tiempo" },
+      fr: { title: "Entraîneur de Viser 🎯", score: "Score", time: "Temps Restant", level: "Niveau", gameOver: "Jeu Terminé!", accuracy: "Précision", restart: "Recommencer", lang: "Langue", timeSelect: "Temps" },
+      de: { title: "Zieltrainer 🎯", score: "Punkte", time: "Verbleibende Zeit", level: "Stufe", gameOver: "Spiel Vorbei!", accuracy: "Genauigkeit", restart: "Neu Starten", lang: "Sprache", timeSelect: "Zeit" },
+      ru: { title: "Тренажёр Аима 🎯", score: "Очки", time: "Оставшееся Время", level: "Уровень", gameOver: "Игра Окончена!", accuracy: "Точность", restart: "Начать заново", lang: "Язык", timeSelect: "Время" }
+    };
+
     let score = 0;
     let timeLeft = 30.0;
     let hits = 0, totalClicks = 0;
@@ -48,8 +70,24 @@
     let targets = [];
     let currentLevel = 1;
     let totalTime = 30;
+    let currentLang = "en";
 
     const levelSizes = { 1: 30, 2: 25, 3: 20, 4: 15, 5: 10 };
+
+    function updateHUD() {
+      document.getElementById("hud").innerText =
+        `${translations[currentLang].score}: ${score} | ${translations[currentLang].time}: ${timeLeft.toFixed(1)} | ${translations[currentLang].level}: ${currentLevel}`;
+      document.getElementById("gameTitle").innerText = translations[currentLang].title;
+      document.getElementById("langLabel").innerText = translations[currentLang].lang + ": ";
+      document.getElementById("levelLabel").innerText = translations[currentLang].level + ": ";
+      document.getElementById("timeLabel").innerText = translations[currentLang].timeSelect + ": ";
+      document.getElementById("startBtn").innerText = translations[currentLang].restart;
+    }
+
+    document.getElementById("langSelect").onchange = (e) => {
+      currentLang = e.target.value;
+      updateHUD();
+    };
 
     gameScene = new Phaser.Scene('Game');
 
@@ -59,18 +97,14 @@
       hits = 0;
       totalClicks = 0;
       targets = [];
+      updateHUD();
 
-      document.getElementById("hud").innerText =
-        `점수: 0 | 남은 시간: ${timeLeft.toFixed(1)}초 | 레벨: ${currentLevel}`;
-
-      // 0.1초마다 시간 업데이트
       this.timer = this.time.addEvent({
         delay: 100,
         loop: true,
         callback: () => {
           timeLeft -= 0.1;
-          document.getElementById("hud").innerText =
-            `점수: ${score} | 남은 시간: ${timeLeft.toFixed(1)}초 | 레벨: ${currentLevel}`;
+          updateHUD();
           if (timeLeft <= 0) {
             this.endGame();
           }
@@ -80,7 +114,6 @@
       this.spawnTargets();
     };
 
-    // 점 10개 생성
     gameScene.spawnTargets = function() {
       targets.forEach(t => t.destroy());
       targets = [];
@@ -96,10 +129,7 @@
           totalClicks++;
           circle.destroy();
           targets = targets.filter(t => t !== circle);
-
-          document.getElementById("hud").innerText =
-            `점수: ${score} | 남은 시간: ${timeLeft.toFixed(1)}초 | 레벨: ${currentLevel}`;
-
+          updateHUD();
           if (targets.length === 0) {
             this.spawnTargets();
           }
@@ -108,17 +138,14 @@
       }
     };
 
-    // 게임 종료
     gameScene.endGame = function() {
       targets.forEach(t => t.destroy());
       this.scene.pause();
-
-      // 종료 후 레벨/시간 다시 선택 가능
       document.getElementById("level").disabled = false;
       document.getElementById("timeSelect").disabled = false;
 
       let accuracy = totalClicks > 0 ? ((hits / totalClicks) * 100).toFixed(1) : 0;
-      alert(`게임 종료!\n점수: ${score}\n정확도: ${accuracy}%`);
+      alert(`${translations[currentLang].gameOver}\\n${translations[currentLang].score}: ${score}\\n${translations[currentLang].accuracy}: ${accuracy}%`);
       location.reload();
     };
 
@@ -134,11 +161,8 @@
       this.style.display = "none";
       currentLevel = parseInt(document.getElementById("level").value);
       totalTime = parseInt(document.getElementById("timeSelect").value);
-
-      // 시작하면 레벨/시간 변경 불가
       document.getElementById("level").disabled = true;
       document.getElementById("timeSelect").disabled = true;
-
       game = new Phaser.Game(config);
     };
   </script>
